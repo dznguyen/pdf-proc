@@ -18,7 +18,7 @@ def split_file(pdfname: str,
     import pypdf
 
     with open(pdfname, 'rb') as pdf_file:
-        pdf_reader = pypdf.PdfFileReader(pdf_file)
+        pdf_reader = pypdf.PdfReader(pdf_file)
 
         N = len(pdf_reader.pages)
         st.write(f"Processing {N} pages...")
