@@ -148,4 +148,6 @@ with st.sidebar:
     st.header(":red[Dangerous zone]")
     if st.button("Purge PDF history"):
         if file_history and len(file_history)>0:
-            st.write("TODO: delete all found PDFs!") 
+            st.write("Delete all  PDFs found.") 
+            for fi in file_history:
+                os.remove(fi)
