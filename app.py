@@ -52,16 +52,40 @@ def serve_files(source: str,
 
     st.write(f'Serving splits for {source}')
     # Fake content, for now!
-    for i, p in enumerate(pages):
-        st.download_button(label=f'File {i}, size {p}.', 
-                        data=f"text_contents {i}: number of pages = {p}",
-                        file_name=f"file_{i}.txt", 
-                        mime='text/plain')
+    # for i, p in enumerate(pages):
+    #     st.download_button(label=f'File {i}, size {p}.', 
+    #                     data=f"text_contents {i}: number of pages = {p}",
+    #                     file_name=f"file_{i}.txt", 
+    #                     mime='text/plain')
 
-    # TODO: split file to multiple PDFs to serve. OR, even better, stream pages
-    # from the source PDF in each download_button.
+    from io import BytesIO
+    from pypdf import PdfReader, PdfWriter
 
+    # p_cumsum = np.append([0], np.cumsum(pages))
+    p_cumsum = np.cumsum([0,] + pages) 
 
+    # print(p_cumsum)
+
+    # Prepare example
+    with open(source, "rb") as fh:
+        input_bytes_stream = BytesIO(fh.read())
+
+    # Read from bytes_stream
+    reader = PdfReader(input_bytes_stream)
+
+    for i in range(len(pages)):
+        writer = PdfWriter()
+        for page in reader.pages[p_cumsum[i]: p_cumsum[i+1]]:
+            writer.add_page(page)
+        
+        # Write to bytes_stream        
+        with BytesIO() as output_bytes_stream:
+            writer.write(output_bytes_stream)
+            st.download_button(label=f'File {i}, #pages: {pages[i]}', 
+                        data=output_bytes_stream,
+                        file_name=f"file_{i}.pdf", 
+                        mime='application/pdf')
+        
 #--- Layout setup ---
 # del st.session_state['file_uploaded']
 
@@ -82,8 +106,10 @@ elif split_option == split_strings[1]:
 else:
     pass
 
-# if ('file_uploaded' in st.session_state):
-    # st.write(st.session_state.file_uploaded)
+if ('file_uploaded' in st.session_state):
+    st.write(st.session_state.file_uploaded)
+else:
+    st.write("No state.")
 
 if ('file_uploaded' not in st.session_state) or \
     st.session_state.file_uploaded['successful'] == False:
