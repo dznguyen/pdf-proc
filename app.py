@@ -19,7 +19,7 @@ def split_file(pdfname: str,
         # st.write(f'PDF Metadata is {pdf_reader.metadata}') 
 
         file_stats = os.stat(pdfname)
-        st.write(file_stats)
+        # st.write(file_stats)
         global split_strings
 
         if option == split_strings[0]:
@@ -42,7 +42,8 @@ from typing import List
 def serve_files(source: str,
                 pages: List[int]):
 
-    st.write(f'Serving {len(pages)} splits for {source}')
+    source_base_name = os.path.basename(source)
+    st.write(f'Serving {len(pages)} splits for {source_base_name}')
 
     from io import BytesIO
     from pypdf import PdfReader, PdfWriter
@@ -65,9 +66,9 @@ def serve_files(source: str,
         # Write to bytes_stream        
         with BytesIO() as output_bytes_stream:
             writer.write(output_bytes_stream)
-            st.download_button(label=f'File {i}, #pages: {pages[i]}', 
+            st.download_button(label=f'{source_base_name[:-4]}_s{i}, #pages: {pages[i]}', 
                         data=output_bytes_stream,
-                        file_name=f"file_{i}.pdf", 
+                        file_name=f"{source_base_name[:-4]}_s{i}.pdf", 
                         mime='application/pdf')
         
 #--- Layout setup ---
