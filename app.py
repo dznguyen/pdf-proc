@@ -84,7 +84,7 @@ split_option = col2.selectbox(
 split_param = 1
 
 if split_option == split_strings[0]:
-    split_param = col2.selectbox('Number of files',np.arange(2, 11))
+    split_param = col2.selectbox('Number of files',np.arange(1, 11))
 elif split_option == split_strings[1]:
     n_size = col2.number_input('File size (MB), roughly:',value=4.5, format="%.1f")
     split_param = int(n_size*1024*1024)
