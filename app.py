@@ -4,13 +4,7 @@ import numpy as np
 from io import StringIO
 import os
 
-# st.config.set_option("server.maxUploadSize", 20)
-
-# uploaded_file = None
-# file_in_server = ''
-# split_option = 1
-# col1, col2 = None, None
-
+# st.config.set_option("server.maxUploadSize", 30)
 
 def split_file(pdfname: str, 
                option: str,
@@ -25,46 +19,36 @@ def split_file(pdfname: str,
         # st.write(f'PDF Metadata is {pdf_reader.metadata}') 
 
         file_stats = os.stat(pdfname)
-
+        st.write(file_stats)
         global split_strings
 
         if option == split_strings[0]:
-            st.write('User chose option 1')
+            # st.write('User chose option 1')
             n_splits = param
         elif option == split_strings[1]:
-            st.write('User chose option 2')
+            # st.write('User chose option 2')
             n_splits = int(np.ceil(file_stats.st_size/param))
-            st.write("n_splits:", n_splits)
-            # pages = [param] * N//param + [N % param]
+            # st.write("n_splits:", n_splits)
 
         pages = [N//n_splits]* (n_splits)
         pages[0] += N % n_splits
         pages = list(filter(lambda num: num != 0, pages))
-    
+        st.write(pages) 
         return pages
         
-
     return []
 
 from typing import List
 def serve_files(source: str,
                 pages: List[int]):
 
-    st.write(f'Serving splits for {source}')
-    # Fake content, for now!
-    # for i, p in enumerate(pages):
-    #     st.download_button(label=f'File {i}, size {p}.', 
-    #                     data=f"text_contents {i}: number of pages = {p}",
-    #                     file_name=f"file_{i}.txt", 
-    #                     mime='text/plain')
+    st.write(f'Serving {len(pages)} splits for {source}')
 
     from io import BytesIO
     from pypdf import PdfReader, PdfWriter
 
     # p_cumsum = np.append([0], np.cumsum(pages))
     p_cumsum = np.cumsum([0,] + pages) 
-
-    # print(p_cumsum)
 
     # Prepare example
     with open(source, "rb") as fh:
@@ -99,17 +83,14 @@ split_option = col2.selectbox(
 split_param = 1
 
 if split_option == split_strings[0]:
-    split_param = col2.selectbox('Number of files',[1,2,3])
+    split_param = col2.selectbox('Number of files',np.arange(2, 11))
 elif split_option == split_strings[1]:
-    n_size = col2.number_input('File size (MB), roughly:',value=5)
+    n_size = col2.number_input('File size (MB), roughly:',value=4.5, format="%.1f")
     split_param = int(n_size*1024*1024)
+    # st.write(n_size, split_param)
+    # print(n_size, split_param)
 else:
     pass
-
-if ('file_uploaded' in st.session_state):
-    st.write(st.session_state.file_uploaded)
-else:
-    st.write("No state.")
 
 if ('file_uploaded' not in st.session_state) or \
     st.session_state.file_uploaded['successful'] == False:
@@ -147,3 +128,26 @@ if st.session_state.file_uploaded['successful']:
 # else:
     # st.session_state['successful_upload'] = False
 
+import glob
+
+file_history = glob.glob("./*.pdf")
+
+with st.sidebar:
+    st.title("Settings")
+    selected_history_file = st.selectbox("**File History**", file_history)
+    if st.button("**Load**"):
+        if selected_history_file:
+            st.session_state['file_uploaded'] = \
+                {'successful':True, 
+                 'filename': selected_history_file,
+                 'pages': None}
+            
+            st.write(st.session_state.file_uploaded)
+
+    st.divider()
+    st.header(":red[Dangerous zone]")
+    if st.button("Purge PDF history"):
+        if file_history and len(file_history)>0:
+            st.write("Delete all  PDFs found.") 
+            for fi in file_history:
+                os.remove(fi)
